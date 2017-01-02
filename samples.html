@@ -11,6 +11,20 @@
 </head>
 <script src="js/quiltic.js"></script>
 
+<script>
+
+$(document).ready(function(){
+	console.log("initialization called");
+    $("#tileDisplay").html(quiltic.tile(0,0,0,0));
+    $("#tileDisplay").append(quiltic.tile(1,0,0,0));
+    $("#tileDisplay").append(quiltic.tile(1,1,0,0));
+    $("#tileDisplay").append(quiltic.tile(1,1,1,0));
+    $("#tileDisplay").append(quiltic.tile(1,1,1,1));
+});
+</script>
+
+<div id='tileDisplay'> </div>
+
 <body>
 </body>
 </html>
