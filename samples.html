@@ -13,9 +13,9 @@
 
 <style>
 table, th, td {
-	padding: 4px;
+	padding: 0px;
 	text-align: center;
-    border: 1px solid black;
+    border: 0px solid black;
     border-collapse: collapse; 
 }
 svg {
@@ -28,16 +28,18 @@ svg {
 
 $(document).ready(function(){
 	console.log("initialization called");
-    $("#tileDisplay").html(quiltic.tile(0,0,0,0));
-    $("#tileDisplay").append(quiltic.tile(1,0,0,0));
-    $("#tileDisplay").append(quiltic.tile(1,1,0,0));
-    $("#tileDisplay").append(quiltic.tile(1,1,1,0));
-    $("#tileDisplay").append(quiltic.tile(1,1,1,1));
+    	$("#tileDisplay").html(quiltic.display);
 });
 </script>
 
 <body>
+<h1> Sample quilt </h1>
+<br>
+<hr>
 <div id='tileDisplay'> </div>
+<br>
+<hr>
+<br>
 
 </body>
 </html>

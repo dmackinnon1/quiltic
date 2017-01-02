@@ -2,8 +2,8 @@
 
 var quiltic = {};
 
-quiltic.sizeFactor = 20;
-quiltic.strokeWidth = 3;
+quiltic.sizeFactor = 15;
+quiltic.strokeWidth = 4;
 
 quiltic.tile = function(t,l,b,r) {
 	var img = "<svg align='center' width='" + (quiltic.sizeFactor*4) + "' height='" + (quiltic.sizeFactor*4) +"'>";
@@ -65,4 +65,49 @@ quiltic.line = function(points) {
 	line += " stroke-width='"+ quiltic.strokeWidth + "' stroke='black'/>";
 	return line;	
 };
+
+class QuilticBoard {
+
+	constructor (rows, cols) {
+		this.rows = rows;
+		this.cols = cols;
+	}
+};
+
+quiltic.board = new QuilticBoard(5,4);
+
+function htmlTable(quilticBoard) {
+	var html = "<table border = 1 cellspacing = 1 cellpadding = 1 align='center'>";
+	for (var i = 0; i < quilticBoard.rows; i++){
+		html += "<tr>";
+		for (var j = 0; j < quilticBoard.cols; j ++) {
+			html += "<td><div id='cell" + i +""+ j +"' class='quilticCell' onclick='cellClick(event)'";
+			html += " data-row='"+ i + "' data-col='" + j + "'>";
+			var t = 1;
+			var r = 1;
+			var b = 1;
+			var l = 1;
+			if (i === 0) t = 0;
+			if (i === quilticBoard.rows - 1) b = 0;
+			if (j === 0) l = 0;
+			if (j === quilticBoard.cols -1) r = 0; 
+			html +=  quiltic.tile(t,l,b,r);
+			html += "</div></td>";
+		}
+		html += "</tr>";
+	}
+	html += "</table>";
+	return html;	
+};
+
+function cellClick(event) {
+	var i = parseInt(event.target.getAttribute("data-row"));
+	var j = parseInt(event.target.getAttribute("data-col"));
+	console.log("clicked cell: " + i + "," + j);	
+	//game.clicked(i,j, event.target); //event.target
+};
+
+quiltic.display = htmlTable(quiltic.board);
+
+
 
