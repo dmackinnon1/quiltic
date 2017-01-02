@@ -179,7 +179,6 @@ class QuilticBoard {
 
 };
 
-
 //board instance
 quiltic.board = new QuilticBoard(7,5);
 quiltic.board.init();
