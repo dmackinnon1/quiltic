@@ -2,8 +2,9 @@
 
 var quiltic = {};
 
-quiltic.sizeFactor = 15;
-quiltic.strokeWidth = 4;
+quiltic.sizeFactor = 10;
+quiltic.strokeWidth = 3;
+quiltic.color = "grey";
 
 quiltic.tile = function(t,l,b,r) {
 	var img = "<svg align='center' width='" + (quiltic.sizeFactor*4) + "' height='" + (quiltic.sizeFactor*4) +"'>";
@@ -56,42 +57,144 @@ quiltic.poly = function(list) {
 		poly += list[i];
 		poly += " ";
 	}
-	poly += "' style='fill:black;stroke:black;stroke-width:" + quiltic.strokeWidth + "'/>";
+	poly += "' style='fill:"+ quiltic.color +";stroke:" + quiltic.color + ";stroke-width:" + quiltic.strokeWidth + "'/>";
 	return poly;
 };
 
 quiltic.line = function(points) {
 	var line = "<line " + points;
-	line += " stroke-width='"+ quiltic.strokeWidth + "' stroke='black'/>";
+	line += " stroke-width='"+ quiltic.strokeWidth + "' stroke='"+ quiltic.color +"'/>";
 	return line;	
 };
 
-class QuilticBoard {
+//abstract representation of the tile
+class QuilticTile {
+	constructor (board, rowNum, colNum) {
+		this.rowNum = rowNum;
+		this.colNum = colNum;		
+		this.t = 1;
+		this.r = 1;
+		this.b = 1;
+		this.l = 1;
+		this.board = board;
+		
+	}
+	
+	neighbor(i,j) {
+		if ((this.rowNum + i < this.board.rows)
+			&&(this.rowNum + i >= 0)
+			&&(this.colNum + j < this.board.cols)
+			&&(this.colNum + j >= 0)){
+			return this.board.tiles[this.rowNum + i][this.colNum + j];
+		}
+		return null;
+	}
 
-	constructor (rows, cols) {
-		this.rows = rows;
-		this.cols = cols;
+	rotate() {
+		var temp = this.t;
+		this.t = this.r;
+		this.r = this.b;
+		this.b = this.l;
+		this.l = temp;
+	}
+
+	north(){
+		return this.neighbor(-1,0);
+	}
+	
+	south(){
+		return this.neighbor(1,0);
+	}
+	
+	east(){
+		return this.neighbor(0,1);		
+	}
+	
+	west(){
+		return this.neighbor(0,-1);
+	}
+
+
+	neighbors() {
+		var list = [];
+		if(this.north() != null) list.push(this.north());
+		if(this.south() != null) list.push(this.south());
+		if(this.east() != null) list.push(this.east());
+		if(this.west() != null) list.push(this.west());
+		return list;
+	} 
+
+	enforceBorders() {
+			if (this.north() == null) this.t = 0;
+			if (this.south() == null) this.b = 0;
+			if (this.west() == null) this.l = 0;
+			if (this.east() == null) this.r = 0; 
+	}		
+
+	enforceNeighbors() {
+		if (this.north() != null) {
+			this.t = this.north().b;
+		}
+		if (this.south() != null) {
+			this.b = this.south().t;
+		}
+		if (this.east() != null) {
+			this.r = this.east().l;
+		}
+		if (this.west() != null) {
+			this.l = this.west().r;
+		}
+	}
+
+	updateNeighbors() {
+		var ns = this.neighbors();
+		for (var i = 0; i < ns.length; i++){
+			ns[i].enforceNeighbors();
+		}
 	}
 };
 
-quiltic.board = new QuilticBoard(5,4);
+//a board is a rectangular arrangement of tiles - the board will enforce placement rules
+class QuilticBoard {
+	constructor (rows, cols) {
+		this.rows = rows;
+		this.cols = cols;
+		this.tiles = [];
+	}
 
+	init() {
+		for (var i = 0; i < this.rows; i ++) {
+			var row = [];
+			for (var j = 0; j < this.cols; j++) {
+				row.push(new QuilticTile(this, i, j));
+			}
+			this.tiles.push(row);
+		}
+		for (var i = 0; i < this.rows; i ++) {
+			for (var j = 0; j < this.cols; j++) {
+				this.tiles[i][j].enforceBorders();
+			}
+		}
+	}
+
+};
+
+
+//board instance
+quiltic.board = new QuilticBoard(7,5);
+quiltic.board.init();
+
+//board display
 function htmlTable(quilticBoard) {
-	var html = "<table border = 1 cellspacing = 1 cellpadding = 1 align='center'>";
+	var html = "<table align='center'>";
 	for (var i = 0; i < quilticBoard.rows; i++){
 		html += "<tr>";
 		for (var j = 0; j < quilticBoard.cols; j ++) {
 			html += "<td><div id='cell" + i +""+ j +"' class='quilticCell' onclick='cellClick(event)'";
 			html += " data-row='"+ i + "' data-col='" + j + "'>";
-			var t = 1;
-			var r = 1;
-			var b = 1;
-			var l = 1;
-			if (i === 0) t = 0;
-			if (i === quilticBoard.rows - 1) b = 0;
-			if (j === 0) l = 0;
-			if (j === quilticBoard.cols -1) r = 0; 
-			html +=  quiltic.tile(t,l,b,r);
+			var tile = quilticBoard.tiles[i][j];
+
+			html +=  quiltic.tile(tile.t,tile.l,tile.b,tile.r);
 			html += "</div></td>";
 		}
 		html += "</tr>";
@@ -101,10 +204,15 @@ function htmlTable(quilticBoard) {
 };
 
 function cellClick(event) {
-	var i = parseInt(event.target.getAttribute("data-row"));
-	var j = parseInt(event.target.getAttribute("data-col"));
-	console.log("clicked cell: " + i + "," + j);	
-	//game.clicked(i,j, event.target); //event.target
+	var i = parseInt(event.currentTarget.getAttribute("data-row"));
+	var j = parseInt(event.currentTarget.getAttribute("data-col"));
+	//console.log("clicked cell: " + i + "," + j);	
+	//console.log(event.target);
+	quiltic.board.tiles[i][j].rotate();
+	quiltic.board.tiles[i][j].enforceBorders();
+	quiltic.board.tiles[i][j].updateNeighbors();
+	quiltic.display = htmlTable(quiltic.board);
+	$("#tileDisplay").html(quiltic.display);
 };
 
 quiltic.display = htmlTable(quiltic.board);
